@@ -27,7 +27,7 @@ public class Conexion {
 	private Conexion() {
 		// Conexion a MongoDB
 		mc = MongoClients.create("mongodb://localhost:27017/?authSource=admin");
-		mdb = mc.getDatabase("Prueba-Presencial-2019-04");
+		mdb = mc.getDatabase("Prueba-2019-04");
 		collection = mdb.getCollection("VentasJava");
 	}
 
