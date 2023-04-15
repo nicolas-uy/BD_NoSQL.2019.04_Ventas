@@ -1,0 +1,142 @@
+1) Altas de documentos.
+
+use Prueba-Presencial-2019-04
+db.createCollection("Ventas")
+
+db.Ventas.insertMany([
+   {
+      "Código Inventario": "123321",
+      "Autor": "Alejandro Dumas",
+      "Título": "Los tres mosqueteros",
+      "Precio": 10,
+      "FechaCompra": new Date("2019-02-01"),
+      "EdadComprador": 80,
+      "Ciudad": "Lima",
+      "Formación": ["Primaria Completo", "Secundaria Completo"]
+   },
+   {
+      "Código Inventario": "135426",
+      "Autor": "Arthur Conan Doyle",
+      "Título": "Las aventuras de Sherlock Holmes",
+      "Precio": 11,
+      "FechaCompra": new Date("2019-02-02"),
+      "EdadComprador": 45,
+      "Género": "F",
+      "Formación": ["Primaria Completo", "Secundaria Completo", "Universidad incompleto"]
+   },
+   {
+      "Código Inventario": "135426",
+      "Autor": "Arthur Conan Doyle",
+      "Título": "Las aventuras de Sherlock Holmes",
+      "Precio": 11,
+      "FechaCompra": new Date("2019-03-03"),
+      "Género": "Mujer",
+      "Ciudad": "París"
+   },
+   {
+      "Código Inventario": "235678",
+      "Autor": "Charles Dickens",
+      "Título": "Cuento de Navidad",
+      "Precio": 25,
+      "EdadComprador": 34
+   },
+   {
+      "Código Inventario": "987654",
+      "Autor": "Charles Dickens",
+      "Título": "Historia de dos ciudades",
+      "Precio": 30,
+      "EdadComprador": 57,
+      "Género": "M",
+      "Ciudad": "París"
+   },
+   {
+      "Código Inventario": "986532",
+      "Autor": "Charles Dickens",
+      "Título": "Oliver Twist",
+      "Precio": 12,
+      "FechaCompra": new Date("2019-04-02"),
+      "Género": "M",
+      "Formación": ["Primaria Completo", "Secundaria Completo", "Universidad completo"]
+   },
+   {
+      "Código Inventario": "876521",
+      "Autor": "Edgar allan Poe",
+      "Título": "El gato negro",
+      "Precio": 40,
+      "EdadComprador": 27
+   },
+   {
+      "Código Inventario": "124567",
+      "Autor": "edgar allan poe",
+      "Título": "Los crimenes de la Rue Morge",
+      "Precio": 45,
+      "FechaCompra": new Date("2019-04-03"),
+      "Género": "Hombre",
+      "Ciudad": "Buenos Aires",
+      "Formación": ["Primaria Completo", "Secundaria Incompleto"]
+   },
+   {
+      "Código Inventario": "234590",
+      "Autor": "Fedor Dostoiewski",
+      "Título": "Crimen y castigo",
+      "Precio": 40,
+      "EdadComprador": 59,
+      "Género": "Hombre",
+      "Formación": ["Primaria Completo", "Secundaria Incompleto"]
+   },{
+      "Código Inventario": "135426",
+      "Autor": "Arthur Conan Doyle ",
+      "Título": "Las aventuras de Sherlock Holmes",
+      "Precio": 29,
+      "Género": "F", 
+      "Ciudad": "Montevideo"
+    }
+])
+
+
+2) Generar una sentencia que permita recuperar los documentos cuyo Autor sea Edgar Allan Poe.
+	db.Ventas.find({ Autor: {$regex: "Edgar Allan Poe", $options: "i"}})
+
+
+3) Generar una sentencia que permita recuperar los documentos que tengan Precio mayor a 35 y la EdadComprador mayor a 40.
+	db.Ventas.find({$and:[{"Precio":{"$gt":35}},{"EdadComprador":{"$gt": 40}}]})
+	
+	
+4) Unificar los valores de Género, para que queden normalizados (que los valores finales sean Hombre y Mujer).
+	db.Ventas.updateMany({"Género": "M"},{ $set:{"Género": "Mujer"}})
+	db.Ventas.updateMany({"Género": "F"},{ $set:{"Género": "Mujer"}})
+
+
+5) Agregar la clave Mes, donde se cargue el mes que se realizó la compra (filtrar para Febrero, Marzo y Abril).
+	db.Ventas.aggregate([{
+		$match: { FechaCompra: { $exists: true }}},{
+		$addFields: {
+		  Mes: {$let: {vars: {month: {$month: "$FechaCompra"}},in:{
+				$switch: {
+				  branches: [
+					{case: {$eq: ["$$month", 1]}, then: "Enero"},
+					{case: {$eq: ["$$month", 2]}, then: "Febrero"},
+					{case: {$eq: ["$$month", 3]}, then: "Marzo"},
+					{case: {$eq: ["$$month", 4]}, then: "Abril"},
+					{case: {$eq: ["$$month", 5]}, then: "Mayo"},
+					{case: {$eq: ["$$month", 6]}, then: "Junio"},
+					{case: {$eq: ["$$month", 7]}, then: "Julio"},
+					{case: {$eq: ["$$month", 8]}, then: "Agosto"},
+					{case: {$eq: ["$$month", 9]}, then: "Septiembre"},
+					{case: {$eq: ["$$month", 10]}, then: "Octubre"},
+					{case: {$eq: ["$$month", 11]}, then: "Noviembre"},
+					{case: {$eq: ["$$month", 12]}, then: "Diciembre"}],
+				  default: "Mes Inválido"}}}}}}
+	])
+
+
+6) Agregar la clave Clasico, donde se le cargue el valor SI cuando el Autor es Dumas o Dickens.
+	db.Ventas.updateMany({Autor: {$regex: "Dickens" , $options: "m"}} , {$set: {Clasico: "SI"}})
+
+	
+7) Agregar la clave NivelEducativo, donde se le cargue el valor Alto si tiene formación Universitaria (completa o incompleta)
+	db.Ventas.updateMany({Formación: {$in: [/Universidad completo/i, /Universidad incompleto/i]}},{$set: {NivelEducativo: "Alto"}})
+
+
+8) Eliminar los documentos que no tengan clave FechaCompra.
+	db.Ventas.deleteMany({ FechaCompra: {$exists: false} })
